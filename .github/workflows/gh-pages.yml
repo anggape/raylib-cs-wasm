@@ -8,6 +8,9 @@ jobs:
         with:
           submodules: true
 
+      - name: install ninja build
+        run: sudo apt install -y ninja-build
+
       - name: setup emsdk
         working-directory: thirdparty/emsdk
         run: |
