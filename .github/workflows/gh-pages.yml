@@ -1,0 +1,35 @@
+on: [push, workflow_dispatch]
+jobs:
+  gh-pages:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout repository
+        uses: actions/checkout@v3
+        with:
+          submodules: true
+
+      - name: setup emsdk
+        working-directory: thirdparty/emsdk
+        run: |
+          ./emsdk install 2.0.23
+          ./emsdk activate 2.0.23
+
+      - name: build raylib
+        run: |
+          source thirdparty/emsdk/emsdk_env.sh
+          emcmake cmake \
+            -B artifacts \
+            -S thirdparty/raylib \
+            -D BUILD_EXAMPLES=Off \
+            -D PLATFORM=Web
+          cmake --build artifacts
+          cp artifacts/raylib/libraylib.a src/raylib.a
+
+      - name: build dotnet project
+        run: dotnet build -c Release
+
+      - name: deploy to github pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./src/bin/Release/net6.0/dist
